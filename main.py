@@ -26,15 +26,6 @@ led_pin.value(0)
 piezo_plus_pwm = PWM(Pin(piezo_plus_pin_num), duty=512)
 piezo_plus_pwm.deinit()
 
-# def callback(p):
-#     print('pin change', p)
-#     led_pin.value(1)
-#     utils.piezo_multitone(piezo_plus_pwm, [1300,1000], 10, 500)
-#     led_pin.value(0)
-
-# freezer_switch_pin.irq(trigger=Pin.IRQ_FALLING, handler=callback)
-# fridge_switch_pin.irq(trigger=Pin.IRQ_FALLING, handler=callback)
-
 # use an infinite loop to watch for door opening
 
 def check_open(pin, name, open_times_dct, piezo_args):

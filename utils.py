@@ -17,10 +17,11 @@ def piezo_multitone(pwm, freqs, n_waves, timeout_ms):
     minfreq = min(freqs)
     sleep_ms = math.ceil(n_waves*1000/minfreq)
 
+    pwm.freq(freqs[0])
+    pwm.init()
     start = utime.ticks_ms()
     while utime.ticks_diff(utime.ticks_ms(), start) < timeout_ms:
         for f in freqs:
             pwm.freq(f)
             utime.sleep_ms(sleep_ms)
-
     pwm.deinit()

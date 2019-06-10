@@ -32,7 +32,5 @@ else:
     utime.sleep_ms(100)
     led_pin.value(0)
 
-
-
 import webrepl
 webrepl.start()                   # Check for successful connection

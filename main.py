@@ -1,3 +1,4 @@
+import uos
 import utime
 import machine
 from machine import Pin, PWM
@@ -47,6 +48,13 @@ def check_open(pin, name, open_times_dct, piezo_args):
 
 sleep_time_ms = 250
 delay_for_alarm_ms = 1000
+try:
+    with open('delay_ms') as f:
+        delay_for_alarm_ms = int(f.read())
+    print('Using delay_ms file - wait time:', delay_for_alarm_ms, 'ms')
+except Exception as e:
+    print("Did not find delay_ms file, using default of", delay_for_alarm_ms,'ms. File error:')
+    print(e)
 
 open_times = {'Freezer': None, 'Fridge': None}
 while True:

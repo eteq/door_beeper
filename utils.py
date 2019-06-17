@@ -30,7 +30,7 @@ def piezo_multitone(pwm, freqs, n_waves, timeout_ms):
 
 def set_time_from_nist(assume_day=0, init_rtc=True):
     addr = usocket.getaddrinfo('time.nist.gov', 13)[0][-1]
-    s = socket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
+    s = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
     s.connect(addr)
     result = s.recv(1024)
     s.close()

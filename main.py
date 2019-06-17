@@ -58,6 +58,7 @@ except Exception as e:
     print("Did not find delay_ms file, using default of", delay_for_alarm_ms,'ms. File error:')
     print(e)
 
+rtc_set = False
 last_battery_time = None
 open_times = {'Freezer': None, 'Fridge': None}
 while True:
@@ -73,6 +74,13 @@ while True:
             if (utime.time() - last_battery_time) > battery_time_spacing_secs:
                 voltage = utils.read_battery_voltage()
                 print('Battery level:', voltage, 'V')
+                if not rtc_set:
+                    try:
+                        utils.set_time_from_nist()
+                        rtc_set = True
+                    except:
+                        # try again next round...
+                        rtc_set = False
                 with open('battery_voltage', 'a') as f:
                     f.write(str(utime.time()))
                     f.write(' ')

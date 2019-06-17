@@ -5,7 +5,7 @@ from machine import Pin, ADC
 # https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/adc.html says 0 dB is 1.1 V
 ADC_to_voltage = lambda adc, attendb=0: 1.1*10**(attendb/20)*adc.read()/4095
 
-def read_battery(pin=35):
+def read_battery_voltage(pin=35):
     adc = ADC(Pin(pin))
     adc.atten(ADC.ATTN_11DB)
     return 2*ADC_to_voltage(adc, 11)

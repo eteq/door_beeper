@@ -1,6 +1,7 @@
 import math
 import utime
-from machine import Pin, ADC
+import usocket
+from machine import Pin, ADC, RTC
 
 # https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/adc.html says 0 dB is 1.1 V
 ADC_to_voltage = lambda adc, attendb=0: 1.1*10**(attendb/20)*adc.read()/4095
@@ -25,3 +26,20 @@ def piezo_multitone(pwm, freqs, n_waves, timeout_ms):
             pwm.freq(f)
             utime.sleep_ms(sleep_ms)
     pwm.deinit()
+
+
+def set_time_from_nist(assume_day=0, init_rtc=True):
+    addr = usocket.getaddrinfo('time.nist.gov', 13)[0][-1]
+    s = socket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
+    s.connect(addr)
+    result = s.recv(1024)
+    s.close()
+
+    yr, mo, day = result[7:15].split(b'-')
+    hr, mn, sec = result[16:24].split(b':')
+    tt = (int(yr)+2000, int(mo), int(day), assume_day, int(hr), int(mn), int(sec), 0)
+
+    if init_rtc:
+        RTC().init(tt)
+
+    return tt

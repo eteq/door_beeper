@@ -37,9 +37,20 @@ def set_time_from_nist(assume_day=0, init_rtc=True):
 
     yr, mo, day = result[7:15].split(b'-')
     hr, mn, sec = result[16:24].split(b':')
-    tt = (int(yr)+2000, int(mo), int(day), assume_day, int(hr), int(mn), int(sec), 0)
+
+    yr = int(yr)+2000
+    mo = int(mo)
+    day = int(day)
+    dayofweek = doomsday_of_week(yr, mo, day)
+
+    tt = (yr, mo, day, dayofweek, int(hr), int(mn), int(sec), 0)
 
     if init_rtc:
         RTC().init(tt)
 
     return tt
+
+def doomsday_of_week(year, month, day):
+    t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4]
+    year -= month < 3
+    return (year + int(year/4) - int(year/100) + int(year/400) + t[month-1] + day - 1) % 7

@@ -5,11 +5,31 @@ from machine import Pin, PWM
 
 import utils
 
-piezo_plus_pin_num = 12
-piezo_min_pin_num = 33
-
-freezer_switch_pin_num = 23
-fridge_switch_pin_num = 21
+default_config = dict(
+    sleep_time_ms = 250,
+    freezer_delay_ms = 1000,
+    fridge_delay_ms = 1000,
+    write_battery_voltage = True,
+    piezo_plus_pin_num = 12,
+    piezo_min_pin_num = 33,
+    freezer_switch_pin_num = 23,
+    fridge_switch_pin_num = 21
+    )
+try:
+    config_dct = {}
+    execfile('config.py', config_dct)
+except Exception as e:
+    print("Could not run config file, using defaults:", default_config, '. File error:')
+    print(e)
+    globals().update(default_config)
+else:
+    for varnm in default_config.keys():
+        if varnm in config_dct:
+            globals()[varnm] = config_dct[varnm]
+            print('Loaded config value for', varnm, ':', config_dct[varnm])
+        else:
+            globals()[varnm] = default_config[varnm]
+            print('Using default config value for', varnm, ':', default_config[varnm])
 
 # setup pins
 led_pin = Pin(13, Pin.OUT)
@@ -31,7 +51,7 @@ battery_time_spacing_secs = 600
 
 # use an infinite loop to watch for door opening
 
-def check_open(pin, name, open_times_dct, piezo_args):
+def check_open(pin, name, open_times_dct, piezo_args, delay_for_alarm_ms):
     led_pin.value(0)
     if pin.value() == 1:
         print(name, 'open...')
@@ -48,22 +68,11 @@ def check_open(pin, name, open_times_dct, piezo_args):
             print(name, 'closed.')
         open_times[name] = None
 
-sleep_time_ms = 250
-delay_for_alarm_ms = 1000
-try:
-    with open('delay_ms') as f:
-        delay_for_alarm_ms = int(f.read())
-    print('Using delay_ms file - wait time:', delay_for_alarm_ms, 'ms')
-except Exception as e:
-    print("Did not find delay_ms file, using default of", delay_for_alarm_ms,'ms. File error:')
-    print(e)
-
-rtc_set = False
 last_battery_time = None
 open_times = {'Freezer': None, 'Fridge': None}
 while True:
-    check_open(freezer_switch_pin, 'Freezer', open_times, ([1300,1000], 10, 500))
-    check_open(fridge_switch_pin, 'Fridge', open_times, ([1200,900], 10, 500))
+    check_open(freezer_switch_pin, 'Freezer', open_times, ([1300,1000], 10, 500), freezer_delay_ms)
+    check_open(fridge_switch_pin, 'Fridge', open_times, ([1200,900], 10, 500), fridge_delay_ms)
     utime.sleep_ms(sleep_time_ms)
 
     # write out battery status if desired
@@ -74,16 +83,10 @@ while True:
             if (utime.time() - last_battery_time) > battery_time_spacing_secs:
                 voltage = utils.read_battery_voltage()
                 print('Battery level:', voltage, 'V')
-                if not rtc_set:
-                    try:
-                        utils.set_time_from_nist()
-                        rtc_set = True
-                    except:
-                        # try again next round...
-                        rtc_set = False
-                with open('battery_voltage', 'a') as f:
-                    f.write(str(utime.time()))
-                    f.write(' ')
-                    f.write(str(voltage))
-                    f.write('\n')
+                if write_battery_voltage:
+                    with open('battery_voltage', 'a') as f:
+                        f.write(str(utime.time()))
+                        f.write(' ')
+                        f.write(str(voltage))
+                        f.write('\n')
                 last_battery_time = utime.time()
